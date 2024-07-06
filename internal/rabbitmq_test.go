@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"testing"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"context"
+	"testing"
 	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 
@@ -151,5 +152,66 @@ func TestSend(t *testing.T) {
 	err = rc.Send(ctx, exchange, routingKey, options)
 	if err != nil {
 		t.Fatalf("Failed to send message: %v", err)
+	}
+}
+
+func TestConsume(t *testing.T) {
+	username := "tony"
+	password := "secret"
+	host := "localhost:5672"
+	vhost := "customers"
+	queue := "customers_created"
+	consumer := "email_service"
+	autoAck := false
+
+	// Establish connection to RabbitMQ
+	conn, err := ConnectRabbitMQ(username, password, host, vhost)
+	if err != nil {
+		t.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer conn.Close()
+
+	// Create a RabbitMQ client
+	rc, err := NewRabbitMQClient(conn)
+	if err != nil {
+		t.Fatalf("Failed to create RabbitMQ client: %v", err)
+	}
+	defer rc.Close()
+
+	// Declare the queue (assuming it may not exist)
+	err = rc.CreateQueue(queue, true, false)
+	if err != nil {
+		t.Fatalf("Failed to declare queue: %v", err)
+	}
+
+	// Publish a test message to the queue
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	testMessage := amqp.Publishing{
+		ContentType: "text/plain",
+		DeliveryMode: amqp.Persistent,
+		Body: []byte("A cool message between services"),
+	}
+
+	err = rc.Send(ctx, "", queue, testMessage)
+	if err != nil {
+		t.Fatalf("Failed to send test message: %v", err)
+	}
+
+	// Consume messages from the queue
+	messages, err := rc.Consume(queue, consumer, autoAck)
+	if err != nil {
+		t.Fatalf("Failed to start consumer: %v", err)
+	}
+
+	// Read the first message from the channel
+	select {
+	case msg := <-messages:
+		if string(msg.Body) != "A cool message between services" {
+			t.Fatalf("Expected message body 'Test message', got '%s'", string(msg.Body))
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("Timed out waiting for message")
 	}
 }

@@ -44,7 +44,7 @@ rabbitmqctl set_permissions -p customers tony ".*" ".*" ".*"
 ## Exchanges
 
 - Exchanges are like mailboxes. They are used to route messages to queues. Exchanges can be configured to be durable or transient.
-- Set permissions for `tony` for `customers_events` exchange
+- Set permissions for user `tony` for the `customers_events` exchange
 
 ```bash
 rabbitmqctl set_topic_permissions -p customers tony customer_events "^customers.*" "^customers.*"

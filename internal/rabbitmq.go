@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -103,5 +103,21 @@ func (rc RabbitClient) Send(ctx context.Context, exchange, routingKey string, op
 		true,      // Mandatory flag (if true, server returns an error if it cannot route the message)
 		false,      // Immediate flag (if true, server returns an error if it cannot deliver to a consumer immediately)
 		options,    // Publishing options including message properties and payload
+	)
+}
+
+// Consume starts a consumer that receives messages from a specified queue.
+// queue: the name of the queue to consume from.
+// consumer: the name of the consumer.
+// autoAck: if true, the server will acknowledge the message automatically.
+func (rc RabbitClient) Consume(queue, consumer string, autoAck bool) (<-chan amqp.Delivery, error) {
+	return rc.ch.Consume(
+		queue,    // The name of the queue to consume from
+		consumer, // The name of the consumer
+		autoAck,  // If true, the server will acknowledge the message automatically
+		false,    // If true, the consumer is exclusive and the only one consuming from the queue
+		false,    // If true, the server will not respond to the basic.consume method
+		false,    // If true, the server will not wait for the message to be acknowledged before responding
+		nil,      // Arguments for the consumer
 	)
 }
