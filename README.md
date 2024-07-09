@@ -64,3 +64,4 @@ go test -v ./...
 - [RabbitMQ](https://www.rabbitmq.com/)
 - [RabbitMQ GoLang Client](https://github.com/rabbitmq/amqp091-go)
 - [RabbitMQ GoLang Client Examples](https://github.com/rabbitmq/rabbitmq-tutorials/tree/main/go)
+- [Learn RabbitMQ for Event-Driven Architecture](https://programmingpercy.tech/blog/event-driven-architecture-using-rabbitmq/)
